@@ -1,0 +1,48 @@
+- name: Install lsb_release
+  apt:
+    name: lsb-release
+    install_recommends: no
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Disable Enterprise repository
+  replace:
+    path: /etc/apt/sources.list.d/pve-enterprise.list
+    regexp: '^deb http'
+    replace: '#deb http'      
+
+- name: Get distribution codename
+  shell: lsb_release -c | cut -f 2
+  register: codename
+
+  -set_fact:
+    codename: "{{ codename.stdout }}"
+
+- name: Add No-Subscription repository
+  template:
+    src: templates/pve-no-subscription.list.j2
+    dest: /etc/apt/sources.list.d/pve-no-subscription.list
+
+- name: update packages
+  apt:
+    upgrade: yes
+    update_cache: yes
+  ignore_errors: true
+  when: update_packages == true
+
+- name: install essential packages
+  apt:
+    name: "{{ packages }}"
+    state: present
+
+- name: echo "unattended-upgrades unattended-upgrades/enable_auto_updates boolean true" | sudo debconf-set-selections  - auto install security updates
+  debconf: name=unattended-upgrades question=unattended-upgrades/enable_auto_updates vtype=boolean value='true'
+
+- name: apt install unattended-upgrades
+  apt: name=unattended-upgrades
+
+- name: dpkg-reconfigure -f noninteractive unattended-upgrades
+  command:
+    cmd: dpkg-reconfigure -f noninteractive unattended-upgrades
+    creates: /etc/apt/apt.conf.d/20auto-upgradesS
+  ignore_errors: true

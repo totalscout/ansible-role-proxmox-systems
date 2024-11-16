@@ -1,0 +1,28 @@
+### USER CREDENTIALS ###
+username: geek55
+
+password: "{{ user_password }}"
+
+email: geek55.auth@gmail.com
+
+shell: /bin/bash
+
+#General
+cfg_owner: root
+cfg_group: root
+
+### SSH ###
+ssh_keys:
+  - "~/.ssh/id_rsa.pub"
+# ssh_port: 696969
+# check_timeout: 10
+# sshd_config_path: /etc/ssh/sshd_config
+# sshd_config_backup_path: /etc/ssh/sshd_config.backup
+
+### system ###
+
+update_packages: true
+
+packages:
+  # - qemu-guest-agent
+  # - qrencode # this is for creating wireguard connect qr code

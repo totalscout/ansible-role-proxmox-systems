@@ -1,0 +1,31 @@
+- name: Make machine stay on when lid is closed
+  ansible.builtin.lineinfile:
+    path:  /etc/systemd/logind.conf
+    regexp: '^#HandleLidSwitch=suspend'
+    line: HandleLidSwitch= ignore
+    owner: root
+    group: root
+    mode: '0644'
+  become: true
+
+- name: Add screen off function to grub
+  ansible.builtin.lineinfile:
+    path: /etc/default/grub
+    line:  GRUB_CMDLINE_LINUX="consoleblank=300"
+  notify: grub changed
+  become: true
+
+- name: Remove "No valid subscription" popup on login to webgui
+  replace:
+    path: /usr/share/javascript/proxmox-widget-toolkit/proxmoxlib.js
+    regexp: "res === null \\|\\| res === undefined \\|\\| \\!res \\|\\| res\\n\\t\\t\\t.data.status.toLowerCase\\(\\) \\!== 'active'"
+    replace: "false"
+    backup: yes
+  become: true
+
+
+- name: Restart pveproxy service
+  ansible.builtin.service:
+    name: pveproxy.service
+    state: restarted
+  become: true
